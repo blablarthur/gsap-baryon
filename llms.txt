@@ -1,0 +1,122 @@
+# Baryon GSAP Helpers
+
+Lib JavaScript hébergée pour les projets Webflow de Baryon Studio. Encapsule les patterns d'animation GSAP les plus récurrents (FAQ accordéon, scroll reveal, hero load) sous une API configurable. Conçue pour être chargée en CDN dans le footer custom code de Webflow.
+
+Toutes les fonctions sont exposées sur le namespace global `BaryonGSAP`.
+
+## URLs CDN
+
+Production cliente (tag de version, cache long jsDelivr) :
+`https://cdn.jsdelivr.net/gh/blablarthur/gsap-baryon@v0.1.0/lib/gsap-helpers.js`
+
+Dev / itération (cache 24h max sur jsDelivr) :
+`https://cdn.jsdelivr.net/gh/blablarthur/gsap-baryon@latest/lib/gsap-helpers.js`
+
+Live-reload immédiat (Netlify, ~15 sec après push) :
+`https://gsap-baryon.netlify.app/lib/gsap-helpers.js`
+
+## Workflow standard pour un nouveau client
+
+1. Charger le CDN GSAP + plugins nécessaires + la lib Baryon dans le footer Webflow
+2. Charger le fichier client `https://gsap-baryon.netlify.app/clients/nom-client/animations.js`
+3. Dans ce fichier client, n'écrire QUE les appels `BaryonGSAP.initX({...})` avec les bons sélecteurs du projet
+4. Si un helper de la lib couvre 100% du besoin, l'utiliser. Sinon coder l'anim spécifique dans le fichier client.
+
+## Helpers disponibles
+
+### BaryonGSAP.initFAQ(options)
+
+Accordéon FAQ exclusif (un seul ouvert à la fois, configurable). Anime la hauteur du panneau vers `height: "auto"` (GSAP mesure puis fige) et la rotation de l'icône. Les changements visuels (fond, bordure, radius) sont portés par une classe CSS `.is-open` en `transition`, pas par GSAP — pour rester dans le design system du projet.
+
+Options et valeurs par défaut :
+- `accordionSelector` : `".faq_accordion"` — conteneur de chaque question
+- `questionSelector` : `".faq_question"` — élément cliquable (toggle)
+- `answerSelector` : `".faq_answer"` — panneau qui s'ouvre (overflow: hidden requis en CSS)
+- `iconSelector` : `".faq_icon-wrapper"` — icône à rotater
+- `openClass` : `"is-open"` — classe ajoutée sur l'accordion ouvert
+- `exclusive` : `true` — passer à `false` pour autoriser plusieurs accordéons ouverts
+- `duration` : `0.4`
+- `ease` : `"power2.inOut"`
+- `iconRotation` : `45` — angle final en degrés (45 transforme un "+" en "×")
+
+Dépendances CDN : gsap core uniquement.
+
+CSS requis côté projet (typiquement dans le head custom code Webflow) : style fermé vs ouvert via la classe `.is-open` avec `transition` sur les propriétés visuelles, `overflow: hidden` sur l'answer, `transition: transform` sur l'icône.
+
+Exemple :
+```js
+BaryonGSAP.initFAQ({
+  accordionSelector: ".faq4_accordion",
+  questionSelector: ".faq4_question",
+  answerSelector: ".faq4_answer",
+  iconSelector: ".faq4_icon-wrapper",
+});
+```
+
+### BaryonGSAP.initScrollReveal(options)
+
+Apparition d'éléments quand ils entrent dans le viewport, avec stagger. Anime `y` + `opacity` (composités GPU, pas de reflow). `once: true` empêche le rejeu en remontant.
+
+Options et valeurs par défaut :
+- `targetSelector` : `".reveal"` — éléments à animer
+- `triggerSelector` : `null` — élément déclencheur global ; si null, chaque target se déclenche sur lui-même
+- `y` : `40` — décalage vertical initial en px
+- `opacity` : `0` — opacité initiale
+- `duration` : `0.6`
+- `ease` : `"power2.out"`
+- `stagger` : `0.12` — décalage entre éléments (sec)
+- `start` : `"top 80%"` — position ScrollTrigger
+- `once` : `true`
+
+Dépendances CDN : gsap + ScrollTrigger.
+
+Exemple :
+```js
+BaryonGSAP.initScrollReveal({
+  targetSelector: ".feature_card",
+  triggerSelector: ".feature_list",
+  stagger: 0.12,
+});
+```
+
+### BaryonGSAP.initHeroLoad(options)
+
+Hero animé au chargement de la page. Timeline qui enchaîne : titre (mots, via SplitText si dispo) → sous-titre → CTA → visuel latéral. Les éléments absents du DOM sont silencieusement ignorés.
+
+Options et valeurs par défaut :
+- `headingSelector` : `".hero_heading"`
+- `visualSelector` : `".hero_visual"` — facultatif (image, illustration)
+- `subtitleSelector` : `".hero_subtitle"` — facultatif
+- `ctaSelector` : `".hero_cta"` — facultatif (boutons)
+- `splitType` : `"words"` — `"words"`, `"lines"` ou `"chars"`
+- `revertSplit` : `true` — restaure le DOM original après l'anim (accessibilité, sélection)
+- `defaults` : `{ ease: "power3.out", duration: 0.7 }`
+
+Dépendances CDN : gsap. SplitText (optionnel — si absent, fade simple sur le heading entier).
+
+Exemple :
+```js
+BaryonGSAP.initHeroLoad({
+  headingSelector: ".hero_heading",
+  visualSelector: ".hero_visual",
+  splitType: "words",
+});
+```
+
+## Quand NE PAS utiliser ces helpers
+
+- Animations narratives complexes spécifiques à un projet (séquence avec pin, parallaxe multi-couches, scrubbing scroll-driven) → coder directement dans le fichier `clients/nom-client/animations.js`
+- Helper qui ne couvre que ~70% du besoin et qu'on devrait "tordre" → préférer une implémentation custom côté client. Si le pattern devient récurrent sur 3+ projets, le remonter dans `lib/gsap-helpers.js`.
+- Animations purement CSS (transition simple hover, fade) → laisser le CSS faire le travail
+
+## Patterns disponibles côté CSS dans les projets
+
+Les helpers JS supposent que certaines règles CSS sont en place côté Webflow (head custom code). Pour la FAQ notamment : `.faq_accordion` avec ses variantes `.is-open`, `.faq_answer { overflow: hidden }`, `.faq_icon-wrapper { transition: transform }`. Voir le README du repo pour les CSS de référence avec variables de design system Webflow.
+
+## Versioning
+
+Le repo suit semver. Tags actuels : `v0.1.0`. En production cliente, toujours pointer sur un tag figé et bumper manuellement après QA. En dev, `@latest` ou Netlify.
+
+## Source
+
+GitHub : https://github.com/blablarthur/gsap-baryon
