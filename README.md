@@ -36,17 +36,17 @@ Voir la section URLs ci-dessous pour les valeurs concrètes.
 
 Tag de version stable (recommandé pour la prod cliente) :
 ```
-https://cdn.jsdelivr.net/gh/blablarthur/baryon-webflow-code@v0.1.0/lib/gsap-helpers.js
+https://cdn.jsdelivr.net/gh/blablarthur/gsap-baryon@v0.1.0/lib/gsap-helpers.js
 ```
 
 Dernier commit (cache 24h max, plus court qu'avec `@main`) :
 ```
-https://cdn.jsdelivr.net/gh/blablarthur/baryon-webflow-code@latest/lib/gsap-helpers.js
+https://cdn.jsdelivr.net/gh/blablarthur/gsap-baryon@latest/lib/gsap-helpers.js
 ```
 
 Pour forcer la purge d'un fichier en cache :
 ```
-https://purge.jsdelivr.net/gh/blablarthur/baryon-webflow-code@main/lib/gsap-helpers.js
+https://purge.jsdelivr.net/gh/blablarthur/gsap-baryon@main/lib/gsap-helpers.js
 ```
 
 ### Netlify (live-reload ~15 sec après push)
