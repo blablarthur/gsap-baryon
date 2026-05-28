@@ -1,6 +1,6 @@
 {
   "name": "gsap-baryon",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Helpers GSAP et scripts custom Baryon Studio pour projets Webflow, servis via jsDelivr + Netlify.",
   "main": "lib/gsap-helpers.js",
   "files": [

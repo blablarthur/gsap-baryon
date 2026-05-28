@@ -43,6 +43,8 @@ Dépendances CDN : gsap core uniquement.
 
 CSS requis côté projet (typiquement dans le head custom code Webflow) : style fermé vs ouvert via la classe `.is-open` avec `transition` sur les propriétés visuelles, `overflow: hidden` sur l'answer, `transition: transform` sur l'icône.
 
+Contrainte sur l'icône : pour que la rotation soit visuellement propre (rotation sur place, pas en arc de cercle), le wrapper de l'icône doit être en `display: block` ou `inline-block` et carré (width = height). Le helper force déjà `transformOrigin: 50% 50%` côté GSAP, donc avec un wrapper carré tu es bon.
+
 Exemple :
 ```js
 BaryonGSAP.initFAQ({
