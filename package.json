@@ -1,0 +1,16 @@
+{
+  "name": "baryon-webflow-code",
+  "version": "0.1.0",
+  "description": "Helpers GSAP et scripts custom Baryon Studio pour projets Webflow, servis via jsDelivr + Netlify.",
+  "main": "lib/gsap-helpers.js",
+  "files": [
+    "lib",
+    "clients"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blablarthur/baryon-webflow-code.git"
+  },
+  "author": "Baryon Studio",
+  "license": "MIT"
+}

@@ -1,0 +1,25 @@
+# Netlify config — Baryon Webflow Code
+# Sert les fichiers JS du repo en static, avec un cache court pour
+# garder l'avantage live-reload (à chaque push, ~15 sec de déploiement).
+
+[build]
+  publish = "."
+  command = ""
+
+# CORS pour Webflow + cache court côté navigateur
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    # 5 min de cache navigateur. Le CDN Netlify revalide automatiquement
+    # à chaque déploiement, donc dès que tu push, la nouvelle version
+    # est disponible côté serveur instantanément.
+    Cache-Control = "public, max-age=300, must-revalidate"
+
+# JS spécifiquement
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=300, must-revalidate"
