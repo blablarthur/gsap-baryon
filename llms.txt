@@ -41,9 +41,14 @@ Options et valeurs par défaut :
 
 Dépendances CDN : gsap core uniquement.
 
-CSS requis côté projet (typiquement dans le head custom code Webflow) : style fermé vs ouvert via la classe `.is-open` avec `transition` sur les propriétés visuelles, `overflow: hidden` sur l'answer, `transition: transform` sur l'icône.
+CSS requis côté projet (head custom code Webflow) : uniquement le style visuel ouvert/fermé via la classe `.is-open` avec `transition` sur fond/bordure, et `transition: transform` sur le wrapper de l'icône. Le helper se charge lui-même de poser `height: 0` et `overflow: hidden` sur l'answer au démarrage — pas besoin de le faire en CSS.
 
-Contrainte sur l'icône : pour que la rotation soit visuellement propre (rotation sur place, pas en arc de cercle), le wrapper de l'icône doit être en `display: block` ou `inline-block` et carré (width = height). Le helper force déjà `transformOrigin: 50% 50%` côté GSAP, donc avec un wrapper carré tu es bon.
+Important : désactive toute interaction native Webflow / Relume sur l'élément FAQ avant d'utiliser ce helper. Si une interaction Webflow est active en parallèle, elle pose ses propres styles inline et entre en conflit avec GSAP.
+
+Pièges à éviter :
+- Ne mets PAS `display: none` sur l'answer. GSAP ne peut pas animer la hauteur d'un élément hors du flow normal. Pour cacher avant que la lib soit prête (anti-FOUC), utilise `visibility: hidden` ou `opacity: 0` à la place.
+- Évite le padding direct sur `.faq_answer`. Mets-le sur un enfant interne du panneau — sinon le padding reste visible quand le panneau est "fermé" (height: 0 ne masque que le contenu, pas le padding).
+- Pour que la rotation de l'icône soit visuellement propre (rotation sur place, pas en arc de cercle), le wrapper de l'icône doit être en `display: block` ou `inline-block` et carré (width = height). Le helper force déjà `transformOrigin: 50% 50%` côté GSAP.
 
 Exemple :
 ```js
