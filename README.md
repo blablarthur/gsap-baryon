@@ -32,13 +32,11 @@ Voir la section URLs ci-dessous pour les valeurs concrètes.
 
 ## URLs CDN
 
-Cette section sera complétée automatiquement une fois le repo poussé sur GitHub et Netlify connecté.
-
 ### jsDelivr (CDN public GitHub)
 
 Tag de version stable (recommandé pour la prod cliente) :
 ```
-https://cdn.jsdelivr.net/gh/blablarthur/baryon-webflow-code@v1.0.0/lib/gsap-helpers.js
+https://cdn.jsdelivr.net/gh/blablarthur/baryon-webflow-code@v0.1.0/lib/gsap-helpers.js
 ```
 
 Dernier commit (cache 24h max, plus court qu'avec `@main`) :
@@ -53,11 +51,13 @@ https://purge.jsdelivr.net/gh/blablarthur/baryon-webflow-code@main/lib/gsap-help
 
 ### Netlify (live-reload ~15 sec après push)
 
-À compléter après la connexion du repo dans l'UI Netlify :
+URL principale du site (toujours = dernier déploiement) :
 ```
-https://<TON_SITE>.netlify.app/lib/gsap-helpers.js
-https://<TON_SITE>.netlify.app/clients/nom-client/animations.js
+https://gsap-baryon.netlify.app/lib/gsap-helpers.js
+https://gsap-baryon.netlify.app/clients/nom-client/animations.js
 ```
+
+Piège à éviter : les URLs Netlify avec un hash devant (type `https://6a184d3c685f8200...--gsap-baryon.netlify.app/`) sont des deploy previews figés sur un déploiement précis. Ne les utilise jamais dans Webflow — elles ne suivront pas tes futurs pushes.
 
 ## Stratégie cache : quand utiliser quoi
 
