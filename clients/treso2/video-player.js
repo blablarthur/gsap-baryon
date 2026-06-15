@@ -1,7 +1,3 @@
-<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-
-<script>
   //SCRIPT POUR VIDEO PLAYER
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -100,4 +96,3 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
-</script>

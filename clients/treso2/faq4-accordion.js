@@ -1,4 +1,3 @@
-<script>
   // SCRIPT GSAP POUR FAQ
 document.addEventListener("DOMContentLoaded", () => {
   const accordions = gsap.utils.toArray(".faq4_accordion");
@@ -42,4 +41,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-</script>

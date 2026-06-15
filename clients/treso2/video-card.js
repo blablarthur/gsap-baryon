@@ -1,4 +1,3 @@
-<script>
   //SCRIPT GSAP POUR VIDEO CARD
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -129,4 +128,3 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 });
-</script>

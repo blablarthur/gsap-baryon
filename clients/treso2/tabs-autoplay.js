@@ -1,4 +1,3 @@
-<script>
   //SCRIPT GSAP POUR LE DEFILEMENT AUTOMATIQUE DES TABS
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof gsap === 'undefined') return;
@@ -95,4 +94,3 @@ document.addEventListener('DOMContentLoaded', function () {
     open(0);
   }
 });
-</script>
