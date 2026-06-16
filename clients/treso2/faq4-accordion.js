@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fonctions utilitaires pour ouvrir / fermer un item
   const open = (accordion) => {
     gsap.to(accordion.querySelector(".faq4_answer"), { height: "auto", duration: 0.4, ease: "power2.inOut" });
-    gsap.to(accordion.querySelector(".faq4_icon-wrappper"), { rotation: 45, duration: 0.3, ease: "power2.out" });
+    gsap.to(accordion.querySelector(".faq4_icon-wrappper"), { rotation: 90, duration: 0.3, ease: "power2.out" });
     accordion.classList.add("is-open");   // ← ajout de la classe
     accordion._isOpen = true;
   };
