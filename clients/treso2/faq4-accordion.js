@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Premier item ouvert par défaut (état immédiat, sans animation)
     if (index === 0) {
       gsap.set(accordion.querySelector(".faq4_answer"), { height: "auto" });
-      gsap.set(accordion.querySelector(".faq4_icon-wrappper"), { rotation: 45 });
+      gsap.set(accordion.querySelector(".faq4_icon-wrappper"), { rotation: 90 });
       accordion.classList.add("is-open");   // ← cohérence avec l'état ouvert
       accordion._isOpen = true;
     } else {
