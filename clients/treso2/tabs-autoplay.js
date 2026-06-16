@@ -9,21 +9,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const items = gsap.utils.toArray('[data-accordion-item]', root);
     if (!items.length) return;
 
-    function findMedias(scope) {
-      let m = gsap.utils.toArray('[data-accordion-visual]', scope);
-      if (!m.length) m = gsap.utils.toArray('[data-accordion-media] > *', scope);
+    // --- Détection des médias (adaptative) ---------------------------------
+    // Mode "par item" (mobile) : chaque item contient son propre
+    //   [data-accordion-visual]. On l'associe directement à l'item.
+    // Mode "panneau partagé" (desktop, ancien markup) : les visuels vivent
+    //   dans un [data-accordion-media] commun, alignés sur l'ordre des items.
+    // Le même script couvre les deux configs sans changer le markup, donc
+    //   data-accordion-media n'est plus obligatoire.
+    let perItemMedia = true;
+    const medias = items.map((item) => {
+      const m = item.querySelector('[data-accordion-visual]');
+      if (!m) perItemMedia = false;
       return m;
-    }
-    let medias = findMedias(root);
-    if (!medias.length) {
-      const shared = root.closest('.faq3_component, .faq3_wrapper, section') || document;
-      medias = findMedias(shared);
-    }
-    if (!medias.length) {
-      console.warn('[FAQ] Aucun [data-accordion-visual] trouvé. Vérifie l\'attribut sur les images.');
+    });
+
+    // Fallback panneau partagé si aucun visuel n'est trouvé dans les items
+    if (!perItemMedia) {
+      let shared = gsap.utils.toArray('[data-accordion-visual]', root);
+      if (!shared.length) shared = gsap.utils.toArray('[data-accordion-media] > *', root);
+      if (!shared.length) {
+        const scope = root.closest('.faq3_component, .faq3_wrapper, section') || document;
+        shared = gsap.utils.toArray('[data-accordion-visual]', scope);
+        if (!shared.length) shared = gsap.utils.toArray('[data-accordion-media] > *', scope);
+      }
+      if (!shared.length) {
+        console.warn('[FAQ] Aucun visuel trouvé. Ajoute [data-accordion-visual] dans chaque item (mobile) ou dans [data-accordion-media] (desktop).');
+      }
+      // On remplace la liste alignée-par-item par la liste partagée
+      medias.length = 0;
+      shared.forEach((m) => medias.push(m));
     }
 
-    gsap.set(medias, { autoAlpha: 0 });
+    gsap.set(medias.filter(Boolean), { autoAlpha: 0 });
 
     let current = -1;
     let progressTween;
@@ -31,6 +48,28 @@ document.addEventListener('DOMContentLoaded', function () {
     items.forEach((item) => {
       gsap.set(item.querySelector('[data-accordion-body]'), { height: 0, overflow: 'hidden' });
     });
+
+    // Ferme tout : aucun item actif, barres remises à zéro, médias masqués
+    function close() {
+      if (progressTween) progressTween.kill();
+      progressTween = null;
+
+      items.forEach((item) => {
+        const body = item.querySelector('[data-accordion-body]');
+        const fill = item.querySelector('[data-accordion-fill]');
+        const icon = item.querySelector('[data-accordion-icon]');
+        item.classList.remove('is-active');
+        gsap.to(body, { height: 0, duration: 0.45, ease: 'power2.inOut' });
+        gsap.to(icon, { rotation: 0, duration: 0.35, ease: 'power2.out' });
+        gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
+      });
+
+      medias.forEach((media) => {
+        if (media) gsap.to(media, { autoAlpha: 0, duration: 0.5, ease: 'power2.out' });
+      });
+
+      current = -1;
+    }
 
     // autoplay = true par défaut (démarrage + enchaînement auto)
     function open(index, autoplay = true) {
@@ -48,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       medias.forEach((media, i) => {
-        gsap.to(media, { autoAlpha: i === index ? 1 : 0, duration: 0.5, ease: 'power2.out' });
+        if (media) gsap.to(media, { autoAlpha: i === index ? 1 : 0, duration: 0.5, ease: 'power2.out' });
       });
 
       current = index;
@@ -73,10 +112,16 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // 3. Clic manuel → stoppe l'autoplay
+    // 3. Clic manuel → toggle : ouvre l'item, ou le ferme s'il est déjà ouvert
     items.forEach((item, i) => {
       item.querySelector('[data-accordion-header]')
-          .addEventListener('click', () => open(i, false));
+          .addEventListener('click', () => {
+            if (i === current) {
+              close(); // reclic sur l'item actif → fermeture + reset barre
+            } else {
+              open(i, false); // ouverture manuelle (stoppe l'autoplay)
+            }
+          });
     });
 
     // 4. Pause au survol (utile tant que l'autoplay tourne)
