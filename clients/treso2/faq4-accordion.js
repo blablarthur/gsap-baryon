@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fonctions utilitaires pour ouvrir / fermer un item
   const open = (accordion) => {
     gsap.to(accordion.querySelector(".faq4_answer"), { height: "auto", duration: 0.4, ease: "power2.inOut" });
-    gsap.to(accordion.querySelector(".faq4_icon-wrappper"), { rotation: -90, duration: 0.3, ease: "power2.out" });
+    gsap.to(accordion.querySelector(".faq4_icon-wrappper"), { rotation: -180, duration: 0.3, ease: "power2.out" });
     accordion.classList.add("is-open");   // ← ajout de la classe
     accordion._isOpen = true;
   };
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Premier item ouvert par défaut (état immédiat, sans animation)
     if (index === 0) {
       gsap.set(accordion.querySelector(".faq4_answer"), { height: "auto" });
-      gsap.set(accordion.querySelector(".faq4_icon-wrappper"), { rotation: -90 });
+      gsap.set(accordion.querySelector(".faq4_icon-wrappper"), { rotation: -180 });
       accordion.classList.add("is-open");   // ← cohérence avec l'état ouvert
       accordion._isOpen = true;
     } else {
