@@ -1,4 +1,4 @@
-//SCRIPT GSAP — DÉFILEMENT AUTO DES TABS (multi-set responsive)
+//SCRIPT GSAP — DÉFILEMENT AUTO DES TABS (panneau desktop + visuels mobile)
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof gsap === 'undefined') return;
   const DURATION = 5; // secondes avant de passer au tab suivant
@@ -9,19 +9,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const items = gsap.utils.toArray('[data-accordion-item]', root);
     if (!items.length) return;
 
-    // --- Association visuels ↔ items PAR VALEUR D'INDEX -------------------
-    // data-accordion-visual="0", "1"... La valeur EST l'index de l'item.
-    // Plusieurs visuels peuvent partager le même index (ex: 1 mobile + 1
-    // desktop) : ils seront togglés ensemble. Le CSS gère la visibilité
-    // selon le breakpoint.
-    const allVisuals = gsap.utils.toArray('[data-accordion-visual]', root);
+    // --- Scope ÉLARGI : on remonte au conteneur qui englobe À LA FOIS -----
+    // le panneau desktop ([data-accordion-media]) ET la liste ([data-accordion]).
+    // Sans ça, les visuels desktop (siblings de la liste) ne sont jamais trouvés.
+    const scope = root.closest('.faq3_content, .faq3_component, .faq3_wrapper, section') || document;
 
-    // Détecte si tu as bien renseigné des valeurs numériques
+    // Association visuels ↔ items PAR VALEUR d'index.
+    // data-accordion-visual="0" desktop ET ="0" mobile → même groupe, togglés ensemble.
+    const allVisuals = gsap.utils.toArray('[data-accordion-visual]', scope);
+
     const hasExplicitIndex = allVisuals.some(
       (v) => v.getAttribute('data-accordion-visual') !== ''
     );
 
-    let mediaGroups; // tableau de tableaux : mediaGroups[i] = [visuels de l'item i]
+    let mediaGroups; // mediaGroups[i] = [tous les visuels de l'item i]
 
     if (hasExplicitIndex) {
       mediaGroups = items.map((_, i) =>
@@ -30,8 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         )
       );
     } else {
-      // Fallback positionnel (un seul set, ancien markup sans valeurs)
-      console.warn('[FAQ] Aucune valeur sur data-accordion-visual : fallback positionnel. Mets data-accordion-visual="0", "1"... pour le mode multi-set responsive.');
+      console.warn('[FAQ] Pas de valeur sur data-accordion-visual : fallback positionnel.');
       mediaGroups = items.map((item, i) => {
         const m = item.querySelector('[data-accordion-visual]') || allVisuals[i];
         return m ? [m] : [];
@@ -48,14 +48,12 @@ document.addEventListener('DOMContentLoaded', function () {
       gsap.set(item.querySelector('[data-accordion-body]'), { height: 0, overflow: 'hidden' });
     });
 
-    // Toggle tous les visuels d'un groupe ensemble
     function setGroupAlpha(group, alpha) {
       group.forEach((media) => {
         gsap.to(media, { autoAlpha: alpha, duration: 0.5, ease: 'power2.out' });
       });
     }
 
-    // Ferme tout
     function close() {
       if (progressTween) progressTween.kill();
       progressTween = null;
@@ -74,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function () {
       current = -1;
     }
 
-    // autoplay = true par défaut
     function open(index, autoplay = true) {
       if (progressTween) progressTween.kill();
 
@@ -89,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function () {
         gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
       });
 
-      // Toggle TOUS les visuels de l'item actif (mobile + desktop)
       mediaGroups.forEach((group, i) => setGroupAlpha(group, i === index ? 1 : 0));
 
       current = index;
@@ -112,30 +108,23 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Clic manuel → toggle
     items.forEach((item, i) => {
       item.querySelector('[data-accordion-header]')
           .addEventListener('click', () => {
-            if (i === current) {
-              close();
-            } else {
-              open(i, false);
-            }
+            if (i === current) close();
+            else open(i, false);
           });
     });
 
-    // Pause au survol
     root.addEventListener('mouseenter', () => progressTween && progressTween.pause());
     root.addEventListener('mouseleave', () => progressTween && progressTween.resume());
 
-    // Recalcul hauteur après chargement images/polices
     window.addEventListener('load', () => {
       if (current < 0) return;
       const body = items[current].querySelector('[data-accordion-body]');
       if (body) gsap.set(body, { height: 'auto' });
     });
 
-    // Démarrage auto
     open(0);
   }
 });
