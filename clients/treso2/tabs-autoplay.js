@@ -1,7 +1,7 @@
-  //SCRIPT GSAP POUR LE DEFILEMENT AUTOMATIQUE DES TABS
+//SCRIPT GSAP — DÉFILEMENT AUTO DES TABS (multi-set responsive)
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof gsap === 'undefined') return;
-  const DURATION = 5; // durée (en secondes) avant de passer au tab suivant
+  const DURATION = 5; // secondes avant de passer au tab suivant
 
   gsap.utils.toArray('[data-accordion]').forEach(initAccordion);
 
@@ -9,38 +9,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const items = gsap.utils.toArray('[data-accordion-item]', root);
     if (!items.length) return;
 
-    // --- Détection des médias (adaptative) ---------------------------------
-    // Mode "par item" (mobile) : chaque item contient son propre
-    //   [data-accordion-visual]. On l'associe directement à l'item.
-    // Mode "panneau partagé" (desktop, ancien markup) : les visuels vivent
-    //   dans un [data-accordion-media] commun, alignés sur l'ordre des items.
-    // Le même script couvre les deux configs sans changer le markup, donc
-    //   data-accordion-media n'est plus obligatoire.
-    let perItemMedia = true;
-    const medias = items.map((item) => {
-      const m = item.querySelector('[data-accordion-visual]');
-      if (!m) perItemMedia = false;
-      return m;
-    });
+    // --- Association visuels ↔ items PAR VALEUR D'INDEX -------------------
+    // data-accordion-visual="0", "1"... La valeur EST l'index de l'item.
+    // Plusieurs visuels peuvent partager le même index (ex: 1 mobile + 1
+    // desktop) : ils seront togglés ensemble. Le CSS gère la visibilité
+    // selon le breakpoint.
+    const allVisuals = gsap.utils.toArray('[data-accordion-visual]', root);
 
-    // Fallback panneau partagé si aucun visuel n'est trouvé dans les items
-    if (!perItemMedia) {
-      let shared = gsap.utils.toArray('[data-accordion-visual]', root);
-      if (!shared.length) shared = gsap.utils.toArray('[data-accordion-media] > *', root);
-      if (!shared.length) {
-        const scope = root.closest('.faq3_component, .faq3_wrapper, section') || document;
-        shared = gsap.utils.toArray('[data-accordion-visual]', scope);
-        if (!shared.length) shared = gsap.utils.toArray('[data-accordion-media] > *', scope);
-      }
-      if (!shared.length) {
-        console.warn('[FAQ] Aucun visuel trouvé. Ajoute [data-accordion-visual] dans chaque item (mobile) ou dans [data-accordion-media] (desktop).');
-      }
-      // On remplace la liste alignée-par-item par la liste partagée
-      medias.length = 0;
-      shared.forEach((m) => medias.push(m));
+    // Détecte si tu as bien renseigné des valeurs numériques
+    const hasExplicitIndex = allVisuals.some(
+      (v) => v.getAttribute('data-accordion-visual') !== ''
+    );
+
+    let mediaGroups; // tableau de tableaux : mediaGroups[i] = [visuels de l'item i]
+
+    if (hasExplicitIndex) {
+      mediaGroups = items.map((_, i) =>
+        allVisuals.filter(
+          (v) => Number(v.getAttribute('data-accordion-visual')) === i
+        )
+      );
+    } else {
+      // Fallback positionnel (un seul set, ancien markup sans valeurs)
+      console.warn('[FAQ] Aucune valeur sur data-accordion-visual : fallback positionnel. Mets data-accordion-visual="0", "1"... pour le mode multi-set responsive.');
+      mediaGroups = items.map((item, i) => {
+        const m = item.querySelector('[data-accordion-visual]') || allVisuals[i];
+        return m ? [m] : [];
+      });
     }
 
-    gsap.set(medias.filter(Boolean), { autoAlpha: 0 });
+    const allMediasFlat = mediaGroups.flat();
+    gsap.set(allMediasFlat, { autoAlpha: 0 });
 
     let current = -1;
     let progressTween;
@@ -49,7 +48,14 @@ document.addEventListener('DOMContentLoaded', function () {
       gsap.set(item.querySelector('[data-accordion-body]'), { height: 0, overflow: 'hidden' });
     });
 
-    // Ferme tout : aucun item actif, barres remises à zéro, médias masqués
+    // Toggle tous les visuels d'un groupe ensemble
+    function setGroupAlpha(group, alpha) {
+      group.forEach((media) => {
+        gsap.to(media, { autoAlpha: alpha, duration: 0.5, ease: 'power2.out' });
+      });
+    }
+
+    // Ferme tout
     function close() {
       if (progressTween) progressTween.kill();
       progressTween = null;
@@ -64,14 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
         gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
       });
 
-      medias.forEach((media) => {
-        if (media) gsap.to(media, { autoAlpha: 0, duration: 0.5, ease: 'power2.out' });
-      });
-
+      mediaGroups.forEach((group) => setGroupAlpha(group, 0));
       current = -1;
     }
 
-    // autoplay = true par défaut (démarrage + enchaînement auto)
+    // autoplay = true par défaut
     function open(index, autoplay = true) {
       if (progressTween) progressTween.kill();
 
@@ -86,13 +89,11 @@ document.addEventListener('DOMContentLoaded', function () {
         gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
       });
 
-      medias.forEach((media, i) => {
-        if (media) gsap.to(media, { autoAlpha: i === index ? 1 : 0, duration: 0.5, ease: 'power2.out' });
-      });
+      // Toggle TOUS les visuels de l'item actif (mobile + desktop)
+      mediaGroups.forEach((group, i) => setGroupAlpha(group, i === index ? 1 : 0));
 
       current = index;
 
-      // Barre de progression UNIQUEMENT en mode auto
       if (autoplay) {
         const activeFill = items[index].querySelector('[data-accordion-fill]');
         progressTween = gsap.fromTo(activeFill,
@@ -105,37 +106,36 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         );
       } else {
-        progressTween = null; // stop définitif du défilement
-        // Barre de l'item ouvert remplie à 100 %
+        progressTween = null;
         const activeFill = items[index].querySelector('[data-accordion-fill]');
         gsap.to(activeFill, { scaleX: 1, duration: 0.4, ease: 'power2.out' });
       }
     }
 
-    // 3. Clic manuel → toggle : ouvre l'item, ou le ferme s'il est déjà ouvert
+    // Clic manuel → toggle
     items.forEach((item, i) => {
       item.querySelector('[data-accordion-header]')
           .addEventListener('click', () => {
             if (i === current) {
-              close(); // reclic sur l'item actif → fermeture + reset barre
+              close();
             } else {
-              open(i, false); // ouverture manuelle (stoppe l'autoplay)
+              open(i, false);
             }
           });
     });
 
-    // 4. Pause au survol (utile tant que l'autoplay tourne)
+    // Pause au survol
     root.addEventListener('mouseenter', () => progressTween && progressTween.pause());
     root.addEventListener('mouseleave', () => progressTween && progressTween.resume());
 
-    // 5. Recalcul de hauteur après chargement images/polices
+    // Recalcul hauteur après chargement images/polices
     window.addEventListener('load', () => {
       if (current < 0) return;
       const body = items[current].querySelector('[data-accordion-body]');
       if (body) gsap.set(body, { height: 'auto' });
     });
 
-    // 6. Démarrage en mode auto
+    // Démarrage auto
     open(0);
   }
 });
